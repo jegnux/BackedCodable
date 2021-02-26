@@ -146,11 +146,17 @@ extension BackedDecodingContext.Element {
     
     // MARK: - Unkeyed Collection
     
-    public func nestedUnkeyedCollection(_ kind: DeferredSingleValueContainer.Kind) throws -> UnkeyedCollection {
+    public func nestedUnkeyedCollection(_ kind: DeferredSingleValueContainer.Kind, filter: PathFilter? = nil) throws -> UnkeyedCollection {
         let container = try closestKeyedContainer()
-        return container.allKeys.sorted().map { key in
+        var collection = container.allKeys.sorted().map { key in
             DeferredSingleValueContainer(kind: kind, key: key, container: container)
         }
+        if let filter = filter {
+            try collection.removeAll { container -> Bool in
+                try filter.predicate(container) == false
+            }
+        }
+        return collection
     }
 }
 
@@ -179,14 +185,14 @@ struct DeferredSingleValueContainer {
         }
     }
     
-    private func decodeFromKey<T: Decodable>(_ type: T.Type = T.self) throws -> T {
+    func decodeFromKey<T: Decodable>(_ type: T.Type = T.self) throws -> T {
         guard let value = (key.stringValue as? T) ?? (key.intValue as? T) else {
             throw BackedError.invalidPath
         }
         return value
     }
 
-    private func decodeFromValue<T: Decodable>(_ type: T.Type = T.self) throws -> T {
+    func decodeFromValue<T: Decodable>(_ type: T.Type = T.self) throws -> T {
         try container.decode(T.self, forKey: key)
     }
 }

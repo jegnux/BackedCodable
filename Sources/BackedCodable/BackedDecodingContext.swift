@@ -14,7 +14,9 @@ public final class BackedDecodingContext {
             switch (current, next) {
             case (.key(let key), .key),
                  (.key(let key), .allKeys),
-                 (.key(let key), .allValues):
+                 (.key(let key), .allValues),
+                 (.key(let key), .keys),
+                (.key(let key), .values):
                 elements.append(
                     .keyed(try lastElement.nestedKeyedContainer(forKey: key))
                 )
@@ -24,7 +26,9 @@ public final class BackedDecodingContext {
                 )
             case (.index(let index), .key),
                 (.index(let index), .allKeys),
-                (.index(let index), .allValues):
+                (.index(let index), .allValues),
+                (.index(let index), .keys),
+                (.index(let index), .values):
                 elements.append(
                     .keyed(try lastElement.nestedKeyedContainer(at: index))
                 )
@@ -37,10 +41,20 @@ public final class BackedDecodingContext {
                 elements.append(
                     .unkeyedCollection(try lastElement.nestedUnkeyedCollection(.decodeFromKey))
                 )
+
+            case (.keys(let filter), .index):
+                elements.append(
+                    .unkeyedCollection(try lastElement.nestedUnkeyedCollection(.decodeFromKey, filter: filter))
+                )
                 
             case (.allValues, .index):
                 elements.append(
                     .unkeyedCollection(try lastElement.nestedUnkeyedCollection(.decodeFromValue))
+                )
+                
+            case (.values(let filter), .index):
+                elements.append(
+                    .unkeyedCollection(try lastElement.nestedUnkeyedCollection(.decodeFromValue, filter: filter))
                 )
 
             default:
@@ -59,22 +73,25 @@ public final class BackedDecodingContext {
     public let options: BackedOptions
     public let dateDecodingStrategy: JSONDecoder.DateDecodingStrategy
     
+    func decode<T: Decodable>(_ type: T.Type = T.self, kind: DeferredSingleValueContainer.Kind, filter: PathFilter? = nil) throws -> [T] {
+        let collection = try elements.last!.nestedUnkeyedCollection(kind, filter: filter)
+        if options.contains(.lossy) {
+            return collection.compactMap { try? $0.decode() }
+        } else {
+            return try collection.map { try $0.decode() }
+        }
+    }
+
     func decode<T: Decodable>(_ type: T.Type = T.self) throws -> [T] {
         switch pathComponents.last {
         case .allKeys:
-            let collection = try elements.last!.nestedUnkeyedCollection(.decodeFromKey)
-            if options.contains(.lossy) {
-                return collection.compactMap { try? $0.decode() }
-            } else {
-                return try collection.map { try $0.decode() }
-            }
+            return try decode(type, kind: .decodeFromKey)
         case .allValues:
-            let collection = try elements.last!.nestedUnkeyedCollection(.decodeFromValue)
-            if options.contains(.lossy) {
-                return collection.compactMap { try? $0.decode() }
-            } else {
-                return try collection.map { try $0.decode() }
-            }
+            return try decode(type, kind: .decodeFromValue)
+        case .keys(let filter):
+            return try decode(type, kind: .decodeFromKey, filter: filter)
+        case .values(let filter):
+            return try decode(type, kind: .decodeFromValue, filter: filter)
         default:
             throw BackedError.invalidPath
         }
@@ -86,7 +103,7 @@ public final class BackedDecodingContext {
             return try elements.last!.decode(forKey: key)
         case let .index(index):
             return try elements.last!.decode(at: index)
-        case .allKeys, .allValues, nil:
+        case .allKeys, .allValues, .keys, .values, nil:
             throw BackedError.invalidPath
         }
     }
@@ -99,7 +116,7 @@ public final class BackedDecodingContext {
             return try elements.last!.nestedUnkeyedContainer(at: index)
         case nil:
             return try elements.last!.closestUnkeyedContainer()
-        case .allKeys, .allValues:
+        case .allKeys, .allValues, .keys, .values:
             throw BackedError.invalidPath
         }
     }
@@ -112,7 +129,7 @@ public final class BackedDecodingContext {
             return try elements.last!.nestedKeyedContainer(at: index)
         case nil:
             return try elements.last!.closestKeyedContainer()
-        case .allKeys, .allValues:
+        case .allKeys, .allValues, .keys, .values:
             throw BackedError.invalidPath
         }
     }
@@ -123,7 +140,7 @@ public final class BackedDecodingContext {
             throw BackedError.invalidPath
         case nil:
             return try elements.last!.closestSingleValueContainer()
-        case .allKeys, .allValues:
+        case .allKeys, .allValues, .keys, .values:
             throw BackedError.invalidPath
         }
     }

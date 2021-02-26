@@ -106,8 +106,48 @@ struct Test: BackedDecodable {
 
     @Backed(decoder: NSColor.decode(at: Root.background_color))
     var backgroundColor: NSColor
+    
+    
+    @Backed(Path.counts[.keys(where: { (_: String, value: Int) in value < 10 })])
+    var smallCountFruits: [String]
 }
 
+let json = """
+{
+    "counts": {
+        "apples": 12,
+        "oranges": 9,
+        "bananas": 6
+    },
+
+    "test": 42,
+
+    "foreground_color": {
+        "hue": 255,
+        "saturation": 128,
+        "brightness": 128
+    },
+
+    "background_color": {
+        "red": 255,
+        "green": 128,
+        "blue": 128
+    },
+
+    "first_name": "Steve",
+    "start_date": 1613984296000,
+    "end_date": 1613984996,
+    "values": [12, "34", 56, "78"],
+    "attributes": {
+        "values": ["12", 34, "56", 78],
+    }
+}
+"""
+
+let result = try JSONDecoder().decode(Test.self, from: Data(json.utf8))
+for (key, value) in Mirror(reflecting: result).children {
+    print("\(key!): \(value)")
+}
 extension NSColor {
     static func decode(at path: Path) -> (_ decoder: PathDecoder) throws -> NSColor {
         { decoder in
@@ -140,40 +180,4 @@ extension NSColor {
             )
         }
     }
-}
-
-let json = """
-{
-    "test": 42,
-
-    "foreground_color": {
-        "hue": 255,
-        "saturation": 128,
-        "brightness": 128
-    },
-
-    "background_color": {
-        "red": 255,
-        "green": 128,
-        "blue": 128
-    },
-
-    "first_name": "Steve",
-    "start_date": 1613984296000,
-    "end_date": 1613984996,
-    "values": [12, "34", 56, "78"],
-    "attributes": {
-        "values": ["12", 34, "56", 78],
-    },
-    "counts": {
-        "apples": 12,
-        "oranges": 9,
-        "bananas": 6
-    }
-}
-"""
-
-let result = try JSONDecoder().decode(Test.self, from: Data(json.utf8))
-for (key, value) in Mirror(reflecting: result).children {
-    print("\(key!): \(value)")
 }

@@ -15,7 +15,9 @@ struct SUT: BackedDecodable, Equatable {
         fruits: [String],
         counts: [Int],
         bestFruit: String,
-        lastCount: Int
+        lastCount: Int,
+        smallCountFruits: [String],
+        firstSmallCountFruit: String
     ) {
         self._name = Backed(name)
         self._startDate = Backed(startDate)
@@ -27,6 +29,8 @@ struct SUT: BackedDecodable, Equatable {
         self._counts = Backed(counts)
         self._bestFruit = Backed(bestFruit)
         self._lastCount = Backed(lastCount)
+        self._smallCountFruits = Backed(smallCountFruits)
+        self._firstSmallCountFruit = Backed(firstSmallCountFruit)
     }
     
     @Backed(Path.first_name)
@@ -58,6 +62,16 @@ struct SUT: BackedDecodable, Equatable {
 
     @Backed(Path.counts[*][2])
     var lastCount: Int
+    
+    @Backed(Path.counts[.keys(where: hasSmallCount)])
+    var smallCountFruits: [String]
+
+    @Backed(Path.counts[.keys(where: hasSmallCount)][0])
+    var firstSmallCountFruit: String
+}
+
+private func hasSmallCount(_: String, value: Int) -> Bool {
+    value < 10
 }
 
 let json = """
@@ -94,7 +108,9 @@ final class BackedCodableTests: XCTestCase {
                 fruits: ["apples", "bananas", "oranges"],
                 counts: [12, 6, 9],
                 bestFruit: "apples",
-                lastCount: 9
+                lastCount: 9,
+                smallCountFruits: ["bananas", "oranges"],
+                firstSmallCountFruit: "bananas"
             )
         )
     }
