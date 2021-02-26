@@ -106,10 +106,7 @@ public struct BackedOptions: OptionSet {
     
     public let rawValue: Int
     
-    public static let lossy = BackedOptions(rawValue: 1 << 0)
-//    static let <#optionB#> = BackedOptions(rawValue: 1 << 1)
-//    static let <#optionC#> = BackedOptions(rawValue: 1 << 2)
-    
+    public static let lossy = BackedOptions(rawValue: 1 << 0)    
 }
 
 

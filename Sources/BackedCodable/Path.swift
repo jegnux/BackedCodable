@@ -88,23 +88,3 @@ public struct Path {
     }
 
 }
-
-extension Path {
-    public subscript(getter: (_PathComponentFactory) -> PathComponent) -> Path {
-        appending(getter(_PathComponentFactory()))
-    }
-}
-
-public struct _PathComponentFactory {
-    fileprivate init() {}
-}
-
-postfix operator *
-public postfix func * (_ lhs: _PathComponentFactory) -> PathComponent {
-    .allValues
-}
-
-postfix operator ~
-public postfix func ~ (_ lhs: _PathComponentFactory) -> PathComponent {
-    .allKeys
-}

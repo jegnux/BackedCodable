@@ -57,10 +57,10 @@ struct SUT: BackedDecodable, Equatable {
     @Backed(Path.counts[.allValues])
     var counts: [Int]
     
-    @Backed(Path.counts[~][0])
+    @Backed(Path.counts[.allKeys][0])
     var bestFruit: String
 
-    @Backed(Path.counts[*][2])
+    @Backed(Path.counts[.allValues][2])
     var lastCount: Int
     
     @Backed(Path.counts[.keys(where: hasSmallCount)])
