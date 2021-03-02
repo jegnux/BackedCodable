@@ -38,7 +38,19 @@ struct SUT: BackedDecodable, Equatable {
         self._firstSmallCountFruit = Backed(firstSmallCountFruit)
     }
 
-    @Backed(Path.full_name ?? Path.first_name)
+    @Backed()
+    var someString: String?
+
+    @Backed()
+    var someArray: [String]?
+
+    @Backed()
+    var someDate: Date?
+
+    @Backed(strategy: .secondsSince1970)
+    var someDateSince1970: Date?
+
+    @Backed(Path.full_name ?? Path.name ?? Path.first_name)
     var name: String
 
     @Backed(Path.start_date, strategy: .deferredToDecoder)
@@ -50,8 +62,8 @@ struct SUT: BackedDecodable, Equatable {
     @Backed(Path.values, defaultValue: [], options: .lossy)
     var values: [String]
 
-    @Backed(Path.attributes.values, defaultValue: [], options: .lossy)
-    var nestedValues: [String]
+    @Backed(Path.attributes.values, options: .lossy)
+    var nestedValues: [String]?
 
     @Backed(Path.attributes.values[1])
     var nestedInteger: Int
@@ -85,7 +97,7 @@ enum Fruits: String, Decodable {
 
 let json = """
 {
-    "first_name": "Steve",
+    "name": "Steve",
     "start_date": 1613984296000,
     "end_date": 1613984996,
     "values": [12, "34", 56, "78"],

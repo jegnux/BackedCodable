@@ -13,7 +13,7 @@ public final class Backed<Value> {
 
     private var _wrappedValue: Value?
     public var wrappedValue: Value {
-        guard let wrappedValue = _wrappedValue else {
+        guard let wrappedValue = _wrappedValue ?? extractDefaultValue() else {
             fatalError("\(type(of: self)).wrappedValue has been used before being initialized. This is a programming error.")
         }
         return wrappedValue
@@ -24,9 +24,15 @@ public final class Backed<Value> {
     }
 
     public init(_ path: Path?, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decoder: BackingDecoder<Value>) {
-        self._wrappedValue = defaultValue
+        self._wrappedValue = defaultValue ?? extractDefaultValue()
         self.context = .init(path: path ?? Path(), options: options)
         self.decoder = decoder
+    }
+
+    public convenience init<T>(_ path: Path?, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decoder backingDecoder: BackingDecoder<T>) where Value == T? {
+        self.init(path, defaultValue: defaultValue, options: options, decoder: BackingDecoder { decoder, context -> T? in
+            try backingDecoder.decode(from: decoder, context: context)
+        })
     }
 
     func decodeWrappedValue(at inferredPath: Path, from decoder: Decoder) throws {
@@ -43,41 +49,30 @@ public final class Backed<Value> {
     }
 }
 
-extension Backed {
-    public convenience init(wrappedValue value: Value) {
-        self.init(value)
-    }
-
-    public convenience init(_ value: Value) {
-        self.init(nil, defaultValue: value, options: [], decoder: BackingDecoder { _, _ in value })
-    }
-
-    public convenience init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decode: @escaping (Decoder, BackingDecoderContext) throws -> Value) {
-        let decoder = BackingDecoder<Value>(decode: decode)
-        self.init(path, defaultValue: defaultValue, options: options, decoder: decoder)
-    }
-
-    public convenience init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decode: @escaping (Decoder) throws -> Value) {
-        self.init(path, defaultValue: defaultValue, options: options) { decoder, _ in
-            try decode(decoder)
-        }
-    }
-
-    public convenience init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = []) where Value: ElementDecodable {
-        self.init(path, defaultValue: defaultValue, options: options) { decoder, context in
-            try decoder.decode(Value.self, at: context.path, options: context.options)
-        }
-    }
-
-    public convenience init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = []) where Value: Decodable {
-        self.init(path, defaultValue: defaultValue, options: options) { decoder, context in
-            try decoder.decode(Value.self, at: context.path, options: context.options)
-        }
+extension Backed: CustomStringConvertible {
+    public var description: String {
+        String(describing: _wrappedValue as Any? ?? "nil")
     }
 }
 
-extension Backed: CustomStringConvertible where Value: CustomStringConvertible {
-    public var description: String {
-        _wrappedValue?.description ?? "nil"
+extension Backed: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        if let value = _wrappedValue {
+            if let x = value as? CustomDebugStringConvertible {
+                return x.debugDescription
+            } else if let x = value as? CustomStringConvertible {
+                return x.description
+            }
+        }
+        return _wrappedValue.debugDescription
     }
+}
+
+private func extractDefaultValue<T>(from type: T.Type = T.self) -> T? {
+    guard let type = T.self as? ExpressibleByNilLiteral.Type,
+          let none = type.init(nilLiteral: ()) as? T
+    else {
+        return nil
+    }
+    return .some(none)
 }

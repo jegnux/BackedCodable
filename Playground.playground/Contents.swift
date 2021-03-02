@@ -11,6 +11,9 @@ import AppKit
 
 struct Test2: Decodable {
     enum CodingKeys: String, CodingKey {
+        case someString
+        case someArray
+        case someDate
         case first_name
         case start_date
         case end_date
@@ -23,6 +26,9 @@ struct Test2: Decodable {
         let values: [String]
     }
 
+    let someString: String?
+    let someArray: [String]?
+    let someDate: Date?
     let name: String
     let startDate: Date
     let endDate: Date
@@ -34,6 +40,10 @@ struct Test2: Decodable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.someString = try? container.decode(String?.self, forKey: .someString)
+        self.someArray = try? container.decode([String]?.self, forKey: .someArray)
+        self.someDate = try? container.decode(Date?.self, forKey: .someDate)
 
         self.name = try container.decode(String.self, forKey: .first_name)
         self.startDate = Date(
@@ -101,6 +111,15 @@ extension BackingDecoder where Value == NSColor {
 
 struct Test: BackedDecodable {
     @Backed()
+    var someString: String?
+
+    @Backed()
+    var someArray: [String]?
+
+    @Backed()
+    var someDate: Date?
+
+    @Backed(defaultValue: 23)
     var test: Int
 
     @Backed(Path.full_name ?? Path.first_name)
@@ -142,6 +161,7 @@ struct Test: BackedDecodable {
 
 let json = """
 {
+    "someString": "test",
     "test": 42,
     "first_name": "Steve",
     "start_date": 1613984296000,
@@ -169,10 +189,11 @@ let json = """
 """
 
 let result = try JSONDecoder().decode(Test.self, from: Data(json.utf8))
+let result2 = try JSONDecoder().decode(Test2.self, from: Data(json.utf8))
 print("Test(")
 print(
     Mirror(reflecting: result).children
-        .map { key, value in "\t\(key!): \(value)" }
+        .map { key, value in "  \(key!): \(value)" }
         .joined(separator: ",\n")
 )
 print(")")

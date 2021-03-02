@@ -8,63 +8,65 @@ import Foundation
 
 private let iso8601DateFormatter = ISO8601DateFormatter()
 
-public enum DateDecodingStrategy {
+public struct DateDecodingStrategy {
+    private let decode: (PathDecoder) throws -> Date
+
+    private init(_ decode: @escaping (PathDecoder) throws -> Date) {
+        self.decode = decode
+    }
+
     /// Defer to `Decoder` for decoding. This is the default strategy.
-    case deferredToDecoder
+    public static let deferredToDecoder = DateDecodingStrategy { decoder in
+        try decoder.decode(Date.self)
+    }
 
     /// Decode the `Date` as a UNIX timestamp from a JSON number.
-    case secondsSince1970
+    public static let secondsSince1970 = DateDecodingStrategy { decoder in
+        Date(timeIntervalSince1970: try decoder.decode(TimeInterval.self))
+    }
 
     /// Decode the `Date` as UNIX millisecond timestamp from a JSON number.
-    case millisecondsSince1970
+    public static let millisecondsSince1970 = DateDecodingStrategy { decoder in
+        Date(timeIntervalSince1970: try decoder.decode(TimeInterval.self) / 1000)
+    }
 
     /// Decode the `Date` as an ISO-8601-formatted string (in RFC 3339 format).
-    case iso8601
+    public static let iso8601 = DateDecodingStrategy { decoder in
+        try iso8601DateFormatter.date(
+            from: try decoder.decode(String.self)
+        ) ?? .missingValue()
+    }
 
     /// Decode the `Date` as a string parsed by the given formatter.
-    case formatted(DateFormatter)
+    public static func formatted(_ formatter: DateFormatter) -> DateDecodingStrategy {
+        DateDecodingStrategy { decoder in
+            try formatter.date(
+                from: try decoder.decode(String.self)
+            ) ?? .missingValue()
+        }
+    }
 
     /// Decode the `Date` as a custom value decoded by the given closure.
-    case custom((Decoder) throws -> Date)
+    public static func custom(_ decode: @escaping (PathDecoder) throws -> Date) -> DateDecodingStrategy {
+        DateDecodingStrategy(decode)
+    }
+
+    fileprivate func decode(from decoder: PathDecoder) throws -> Date {
+        try decode(decoder)
+    }
 }
 
-private enum DateDecoder {
+enum DateDecoder {
     static func decode(from decoder: Decoder, context: BackingDecoderContext, strategy: DateDecodingStrategy) throws -> Date {
-        try decoder.decode(at: context.path, options: context.options) { context in
-            switch strategy {
-            case .deferredToDecoder:
-                return try context.decode(Date.self)
-            case .secondsSince1970:
-                return Date(
-                    timeIntervalSince1970: try context.decode(Double.self)
-                )
-            case .millisecondsSince1970:
-                return Date(
-                    timeIntervalSince1970: try context.decode(Double.self) / 1000
-                )
-            case .iso8601:
-                return try iso8601DateFormatter.date(
-                    from: try context.decode(String.self)
-                ) ?? .missingValue()
-            case .formatted(let formatter):
-                return try formatter.date(
-                    from: try context.decode(String.self)
-                ) ?? .missingValue()
-            case .custom(let handler):
-                return try handler(context.decoder)
-            }
+        try decoder.decode(at: context.path, options: context.options) { decoder in
+            try strategy.decode(from: decoder)
         }
     }
 }
 
-extension Backed {
-    public convenience init(
-        _ path: Path? = nil,
-        defaultValue: Value? = nil,
-        options: BackingDecoderOptions = [],
-        strategy: DateDecodingStrategy
-    ) where Value == Date {
-        self.init(path, defaultValue: defaultValue, options: options) { decoder, context in
+extension BackingDecoder {
+    static func date(strategy: DateDecodingStrategy) -> BackingDecoder<Date> {
+        BackingDecoder<Date> { (decoder, context) -> Date in
             try DateDecoder.decode(from: decoder, context: context, strategy: strategy)
         }
     }

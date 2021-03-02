@@ -43,6 +43,12 @@ public protocol ElementDecodable: Decodable {
     static func decode(from decoder: PathDecoder) throws -> Self
 }
 
+extension Optional: ElementDecodable where Wrapped: ElementDecodable {
+    public static func decode(from decoder: PathDecoder) throws -> Self {
+        try Wrapped.decode(from: decoder)
+    }
+}
+
 extension Array: ElementDecodable where Element: Decodable {
     public static func decode(from decoder: PathDecoder) throws -> [Element] {
         if decoder.pathComponents.last?.isKeyValue == true {
