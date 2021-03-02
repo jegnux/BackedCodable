@@ -1,3 +1,9 @@
+//
+//  LinuxMain.swift
+//
+//  Created by Jérôme Alves.
+//
+
 import XCTest
 
 import BackedCodableTests

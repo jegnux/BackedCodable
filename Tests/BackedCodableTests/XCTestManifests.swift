@@ -1,3 +1,9 @@
+//
+//  XCTestManifests.swift
+//
+//  Created by Jérôme Alves.
+//
+
 import XCTest
 
 #if !canImport(ObjectiveC)

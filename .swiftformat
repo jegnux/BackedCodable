@@ -1,0 +1,20 @@
+--enable isEmpty
+--disable redundantInit
+
+--closingparen balanced
+--elseposition same-line
+--extensionacl on-declarations
+--ifdef outdent
+--importgrouping testable-bottom
+--indent 4
+--indentcase false
+--patternlet inline
+--ranges spaced
+--self init-only
+--stripunusedargs closure-only
+--wraparguments before-first
+--wrapcollections before-first
+--xcodeindentation disabled
+
+--header "\n {file}\n\n Created by Jérôme Alves.\n"
+

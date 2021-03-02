@@ -1,3 +1,9 @@
+//
+//  BackedDecodable.swift
+//
+//  Created by Jérôme Alves.
+//
+
 import Foundation
 
 public protocol BackedDecodable: Decodable {
@@ -7,21 +13,25 @@ public protocol BackedDecodable: Decodable {
 extension BackedDecodable {
     public init(from decoder: Decoder) throws {
         self = .init()
-        for case (var key?, let value) in Mirror(reflecting: self).children {
-            guard let backedType = value as? WrappedDecodable else {
-                continue
+        for (path, decodable) in decodablePaths {
+            try decodable.decodeWrappedValue(at: path, from: decoder)
+        }
+    }
+
+    private var decodablePaths: [(Path, WrappedDecodable)] {
+        Mirror(reflecting: self).children.compactMap { key, value in
+            guard var key = key, let decodable = value as? WrappedDecodable else {
+                return nil
             }
             if key.hasPrefix("_") {
                 key.remove(at: key.startIndex)
             }
-            backedType.inferredPath = Path(.key(key))
-            try backedType.decodeWrappedValue(from: decoder)
+            return (Path(.key(key)), decodable)
         }
     }
 }
 
 extension Backed: WrappedDecodable {}
 private protocol WrappedDecodable: AnyObject {
-    var inferredPath: Path! { get set }
-    func decodeWrappedValue(from decoder: Decoder) throws
+    func decodeWrappedValue(at path: Path, from decoder: Decoder) throws
 }

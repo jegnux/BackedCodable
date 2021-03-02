@@ -1,118 +1,83 @@
+//
+//  Backed.swift
+//
+//  Created by Jérôme Alves.
+//
+
 import Foundation
 
-public struct PathDecoder {
-    public let decoder: Decoder
-    
-    private func decode<T>(at path: Path, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy, options: BackedOptions, defaultValue: T?, decode: (BackedDecodingContext) throws -> T) throws -> T {
-        do {
-            let context = try BackedDecodingContext(
-                decoder: decoder,
-                path: path,
-                options: options,
-                dateDecodingStrategy: dateDecodingStrategy
-            )
-            return try decode(context)
-        } catch {
-            if let value = defaultValue {
-                return value
-            }
-            throw error
-        }
-    }
-
-    public func decode<T: BackedValue>(at path: Path, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, options: BackedOptions = [], defaultValue: T? = nil) throws -> T {
-        try decode(at: path, dateDecodingStrategy: dateDecodingStrategy, options: options, defaultValue: defaultValue) {
-            try T.decodeValue(using: $0)
-        }
-    }
-    
-    public func decode<T: Decodable>(at path: Path, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, options: BackedOptions = [], defaultValue: T? = nil) throws -> T {
-        try decode(at: path, dateDecodingStrategy: dateDecodingStrategy, options: options, defaultValue: defaultValue) {
-            try $0.decode()
-        }
-    }
-
-}
-
 @propertyWrapper
-public final class Backed<T> {
-        
-    private(set) internal var decode: ((Decoder) throws -> T)!
-    
-    internal var _wrappedValue: T?
-    
-    internal var inferredPath: Path!
+public final class Backed<Value> {
+    public let decoder: BackingDecoder<Value>
+    public let context: BackingDecoderContext
 
-    public var wrappedValue: T {
-        _wrappedValue!
-    }
-
-    public init(wrappedValue value: T) {
-        _wrappedValue = value
-        self.decode = { _ in value }
-    }
-
-    public init(_ value: T) {
-        _wrappedValue = value
-        self.decode = { _ in value }
-    }
-    
-    public init(decoder pathDecoder: @escaping (PathDecoder, Path) throws -> T) {
-        self.decode = { [unowned self] decoder in
-            try pathDecoder(
-                PathDecoder(decoder: decoder),
-                self.inferredPath
-            )
+    private var _wrappedValue: Value?
+    public var wrappedValue: Value {
+        guard let wrappedValue = _wrappedValue else {
+            fatalError("\(type(of: self)).wrappedValue has been used before being initialized. This is a programming error.")
         }
+        return wrappedValue
     }
 
-    public convenience init(decoder pathDecoder: @escaping (PathDecoder) throws -> T) {
-        self.init { decoder, _ in
-            try pathDecoder(decoder)
-        }
-    }
-
-    public convenience init(_ path: Path? = nil, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, options: BackedOptions = [], defaultValue: T? = nil) where T : BackedValue {
-        self.init { decoder, inferredPath in
-            try decoder.decode(at: path ?? inferredPath, dateDecodingStrategy: dateDecodingStrategy, options: options, defaultValue: defaultValue)
-        }
-    }
-
-    public convenience init(_ path: Path? = nil, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, options: BackedOptions = [], defaultValue: T? = nil) where T : Decodable {
-        self.init { decoder, inferredPath in
-            try decoder.decode(at: path ?? inferredPath, dateDecodingStrategy: dateDecodingStrategy, options: options, defaultValue: defaultValue)
-        }
-    }
-
-    public var projectedValue: Backed<T> {
+    public var projectedValue: Backed<Value> {
         self
     }
-    
-    internal func decodeWrappedValue(from decoder: Decoder) throws {
-        _wrappedValue = try decode(decoder)
+
+    public init(_ path: Path?, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decoder: BackingDecoder<Value>) {
+        self._wrappedValue = defaultValue
+        self.context = .init(path: path ?? Path(), options: options)
+        self.decoder = decoder
+    }
+
+    func decodeWrappedValue(at inferredPath: Path, from decoder: Decoder) throws {
+        do {
+            _wrappedValue = try self.decoder.decode(
+                from: decoder,
+                context: context.withInferredPath(inferredPath)
+            )
+        } catch {
+            if _wrappedValue == nil {
+                throw error
+            }
+        }
     }
 }
 
-extension Backed: CustomStringConvertible where T: CustomStringConvertible {
+extension Backed {
+    public convenience init(wrappedValue value: Value) {
+        self.init(value)
+    }
+
+    public convenience init(_ value: Value) {
+        self.init(nil, defaultValue: value, options: [], decoder: BackingDecoder { _, _ in value })
+    }
+
+    public convenience init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decode: @escaping (Decoder, BackingDecoderContext) throws -> Value) {
+        let decoder = BackingDecoder<Value>(decode: decode)
+        self.init(path, defaultValue: defaultValue, options: options, decoder: decoder)
+    }
+
+    public convenience init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decode: @escaping (Decoder) throws -> Value) {
+        self.init(path, defaultValue: defaultValue, options: options) { decoder, _ in
+            try decode(decoder)
+        }
+    }
+
+    public convenience init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = []) where Value: ElementDecodable {
+        self.init(path, defaultValue: defaultValue, options: options) { decoder, context in
+            try decoder.decode(Value.self, at: context.path, options: context.options)
+        }
+    }
+
+    public convenience init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = []) where Value: Decodable {
+        self.init(path, defaultValue: defaultValue, options: options) { decoder, context in
+            try decoder.decode(Value.self, at: context.path, options: context.options)
+        }
+    }
+}
+
+extension Backed: CustomStringConvertible where Value: CustomStringConvertible {
     public var description: String {
         _wrappedValue?.description ?? "nil"
     }
-}
-
-public struct BackedOptions: OptionSet {
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-    
-    public let rawValue: Int
-    
-    public static let lossy = BackedOptions(rawValue: 1 << 0)    
-}
-
-
-internal func ?? <T>(value: T?, error: BackedError) throws -> T {
-    guard let value = value else {
-        throw error
-    }
-    return value
 }

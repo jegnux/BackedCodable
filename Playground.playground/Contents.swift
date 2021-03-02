@@ -1,6 +1,11 @@
-import Foundation
+//
+//  Contents.swift
+//
+//  Created by Jérôme Alves.
+//
+
 import BackedCodable
-typealias Root = Path
+import Foundation
 
 import AppKit
 
@@ -13,11 +18,11 @@ struct Test2: Decodable {
         case attributes
         case counts
     }
-    
+
     struct Attributes {
         let values: [String]
     }
-    
+
     let name: String
     let startDate: Date
     let endDate: Date
@@ -26,10 +31,10 @@ struct Test2: Decodable {
     let nestedInteger: Int
     let fruits: [String]
     let counts: [Int]
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
+
         self.name = try container.decode(String.self, forKey: .first_name)
         self.startDate = Date(
             timeIntervalSince1970: try container.decode(Double.self, forKey: .start_date) / 1000
@@ -37,18 +42,18 @@ struct Test2: Decodable {
         self.endDate = Date(
             timeIntervalSince1970: try container.decode(Double.self, forKey: .end_date)
         )
-        
+
         struct Lossy<T: Decodable>: Decodable {
             let value: T?
             init(from decoder: Decoder) throws {
-                value = try? decoder.singleValueContainer().decode(T.self)
+                self.value = try? decoder.singleValueContainer().decode(T.self)
             }
         }
-        
+
         self.values = try container
             .decode([Lossy<String>].self, forKey: .values)
             .compactMap { $0.value }
-        
+
         self.nestedValues = try container
             .nestedContainer(keyedBy: CodingKeys.self, forKey: .attributes)
             .decode([Lossy<String>].self, forKey: .values)
@@ -56,57 +61,81 @@ struct Test2: Decodable {
 
         if let nestedInteger = try container
             .nestedContainer(keyedBy: CodingKeys.self, forKey: .attributes)
-            .decode([Lossy<Int>].self, forKey: .values)[1].value {
+            .decode([Lossy<Int>].self, forKey: .values)[1].value
+        {
             self.nestedInteger = nestedInteger
         } else {
             throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: container.codingPath, debugDescription: ""))
         }
-        
+
         let counts = try container.decode([String: Int].self, forKey: .counts)
-        
+
         self.fruits = Array(counts.keys)
         self.counts = Array(counts.values)
     }
 }
 
+extension BackingDecoder where Value == NSColor {
+    static var HSBAColor: BackingDecoder<NSColor> {
+        BackingDecoder<NSColor> { decoder, context in
+            NSColor(
+                hue: try decoder.decode(at: context.path.hue) / 255.0,
+                saturation: try decoder.decode(at: context.path.saturation) / 255.0,
+                brightness: try decoder.decode(at: context.path.brightness) / 255.0,
+                alpha: (try? decoder.decode(at: context.path.alpha) / 255.0) ?? 1
+            )
+        }
+    }
+
+    static var RGBAColor: BackingDecoder<NSColor> {
+        BackingDecoder<NSColor> { decoder, context in
+            NSColor(
+                red: try decoder.decode(at: context.path.red) / 255.0,
+                green: try decoder.decode(at: context.path.green) / 255.0,
+                blue: try decoder.decode(at: context.path.blue) / 255.0,
+                alpha: (try? decoder.decode(at: context.path.alpha) / 255.0) ?? 1
+            )
+        }
+    }
+}
+
 struct Test: BackedDecodable {
-    
-    @Backed
+    @Backed()
     var test: Int
-    
-    @Backed(Root.first_name)
+
+    @Backed(Path.full_name ?? Path.first_name)
     var name: String
-    
-    @Backed(Root.start_date, dateDecodingStrategy: .millisecondsSince1970)
+
+    @Backed(Path.start_date, strategy: .millisecondsSince1970)
     var startDate: Date
-    
-    @Backed(Root.end_date, dateDecodingStrategy: .secondsSince1970)
+
+    @Backed(Path.end_date, strategy: .secondsSince1970)
     var endDate: Date
-    
-    @Backed(Root.values, options: .lossy, defaultValue: [])
+
+    @Backed(Path.values, defaultValue: [], options: .lossy)
     var values: [String]
-    
-    @Backed(Root.attributes.values, options: .lossy, defaultValue: [])
+
+    @Backed(Path.attributes.values, defaultValue: [], options: .lossy)
     var nestedValues: [String]
-    
-    @Backed(Root.attributes.values[1])
+
+    @Backed(Path.attributes.values[1])
     var nestedInteger: Int
-    
-    @Backed(Root.counts[.allKeys])
+
+    @Backed(Path.counts[.allKeys])
     var fruits: [String]
-    
-    @Backed(Root.counts[.allValues])
+
+    @Backed(Path.counts[.allValues])
     var counts: [Int]
-    
-    @Backed(Root.counts[.allKeys][0])
+
+    @Backed(Path.counts[.allKeys][0])
     var bestFruit: String
-    
-    @Backed(decoder: NSColor.decode(at: Root.foreground_color))
+
+    @Backed(Path.foreground_color, decoder: .HSBAColor)
     var foregroundColor: NSColor
 
-    @Backed(decoder: NSColor.decode(at: Root.background_color))
+    @Backed(Path.background_color, decoder: .RGBAColor)
     var backgroundColor: NSColor
-    
+
     @Backed(Path.counts[.keys(where: { (_: String, value: Int) in value < 10 })])
     var smallCountFruits: [String]
 }
@@ -147,37 +176,3 @@ print(
         .joined(separator: ",\n")
 )
 print(")")
-
-extension NSColor {
-    static func decode(at path: Path) -> (_ decoder: PathDecoder) throws -> NSColor {
-        { decoder in
-            do {
-                return try decodeFromHSBA(at: path)(decoder)
-            } catch {
-                return try decodeFromRGBA(at: path)(decoder)
-            }
-        }
-    }
-    
-    static func decodeFromHSBA(at path: Path) -> (_ decoder: PathDecoder) throws -> NSColor {
-        { decoder in
-            NSColor(
-                hue: try decoder.decode(at: path.hue) / 255.0,
-                saturation: try decoder.decode(at: path.saturation) / 255.0,
-                brightness: try decoder.decode(at: path.brightness) / 255.0,
-                alpha: (try? decoder.decode(at: path.alpha) / 255.0) ?? 1
-            )
-        }
-    }
-
-    static func decodeFromRGBA(at path: Path) -> (_ decoder: PathDecoder) throws -> NSColor {
-        { decoder in
-            NSColor(
-                red: try decoder.decode(at: path.red) / 255.0,
-                green: try decoder.decode(at: path.green) / 255.0,
-                blue: try decoder.decode(at: path.blue) / 255.0,
-                alpha: (try? decoder.decode(at: path.alpha) / 255.0) ?? 1
-            )
-        }
-    }
-}

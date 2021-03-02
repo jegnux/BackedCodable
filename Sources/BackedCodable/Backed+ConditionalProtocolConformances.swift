@@ -1,41 +1,40 @@
 //
-//  File.swift
-//  
+//  Backed+ConditionalProtocolConformances.swift
 //
-//  Created by Jérôme Alves on 25/02/2021.
+//  Created by Jérôme Alves.
 //
 
 import Foundation
 
-extension Backed: Equatable where T: Equatable {
-    public static func == (lhs: Backed<T>, rhs: Backed<T>) -> Bool {
+extension Backed: Equatable where Value: Equatable {
+    public static func == (lhs: Backed<Value>, rhs: Backed<Value>) -> Bool {
         lhs.wrappedValue == rhs.wrappedValue
     }
 
-    public static func == (lhs: T, rhs: Backed<T>) -> Bool {
+    public static func == (lhs: Value, rhs: Backed<Value>) -> Bool {
         lhs == rhs.wrappedValue
     }
 
-    public static func == (lhs: Backed<T>, rhs: T) -> Bool {
+    public static func == (lhs: Backed<Value>, rhs: Value) -> Bool {
         lhs.wrappedValue == rhs
     }
 }
 
-extension Backed: Comparable where T: Comparable {
-    public static func < (lhs: Backed<T>, rhs: Backed<T>) -> Bool {
+extension Backed: Comparable where Value: Comparable {
+    public static func < (lhs: Backed<Value>, rhs: Backed<Value>) -> Bool {
         lhs.wrappedValue < rhs.wrappedValue
     }
 
-    public static func < (lhs: T, rhs: Backed<T>) -> Bool {
+    public static func < (lhs: Value, rhs: Backed<Value>) -> Bool {
         lhs < rhs.wrappedValue
     }
 
-    public static func < (lhs: Backed<T>, rhs: T) -> Bool {
+    public static func < (lhs: Backed<Value>, rhs: Value) -> Bool {
         lhs.wrappedValue < rhs
     }
 }
 
-extension Backed: Hashable where T: Hashable {
+extension Backed: Hashable where Value: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(wrappedValue)
     }
