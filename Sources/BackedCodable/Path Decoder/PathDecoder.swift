@@ -78,7 +78,7 @@ public final class PathDecoder {
     public let decoder: Decoder
     public let options: BackingDecoderOptions
 
-    func decode<T: Decodable>(_ type: T.Type = T.self, kind: DeferredSingleValueContainer.Kind, filter: PathFilter? = nil) throws -> [T] {
+    private func decode<T: Decodable>(_ type: T.Type = T.self, kind: DeferredSingleValueContainer.Kind, filter: PathFilter? = nil) throws -> [T] {
         let collection = try elements.nestedUnkeyedCollection(kind, filter: filter)
         if options.contains(.lossy) {
             return collection.compactMap { try? $0.decode() }
@@ -87,7 +87,7 @@ public final class PathDecoder {
         }
     }
 
-    func decode<T: Decodable>(_ type: T.Type = T.self) throws -> [T] {
+    public func decode<T: Decodable>(_ type: T.Type = T.self) throws -> [T] {
         switch pathComponents.last {
         case .allKeys:
             return try decode(type, kind: .decodeFromKey)
@@ -102,7 +102,7 @@ public final class PathDecoder {
         }
     }
 
-    func decode<T: Decodable>(_ type: T.Type = T.self) throws -> T {
+    public func decode<T: Decodable>(_ type: T.Type = T.self) throws -> T {
         switch pathComponents.last {
         case .key(let key):
             return try elements.decode(forKey: key)
@@ -114,7 +114,7 @@ public final class PathDecoder {
         }
     }
 
-    func unkeyedContainer() throws -> UnkeyedContainer {
+    public func unkeyedContainer() throws -> UnkeyedContainer {
         switch pathComponents.last {
         case .key(let key):
             return try elements.nestedUnkeyedContainer(forKey: key)
@@ -127,7 +127,7 @@ public final class PathDecoder {
         }
     }
 
-    func keyedContainer() throws -> KeyedContainer {
+    public func keyedContainer() throws -> KeyedContainer {
         switch pathComponents.last {
         case .key(let key):
             return try elements.nestedKeyedContainer(forKey: key)
@@ -140,7 +140,7 @@ public final class PathDecoder {
         }
     }
 
-    func singleValueContainer() throws -> SingleValueContainer {
+    public func singleValueContainer() throws -> SingleValueContainer {
         switch pathComponents.last {
         case .key, .index:
             throw BackedError.invalidPath()

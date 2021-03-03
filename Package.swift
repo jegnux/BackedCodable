@@ -27,9 +27,14 @@ let package = Package(
             name: "BackedCodable",
             dependencies: []
         ),
+        .target(
+            name: "BackedCodableStubs",
+            dependencies: ["BackedCodable"],
+            path: "./Stubs/"
+        ),
         .testTarget(
             name: "BackedCodableTests",
-            dependencies: ["BackedCodable"]
+            dependencies: ["BackedCodable", "BackedCodableStubs"]
         ),
     ]
 )

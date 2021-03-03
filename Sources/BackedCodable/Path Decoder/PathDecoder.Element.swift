@@ -7,9 +7,9 @@
 import Foundation
 
 extension PathDecoder {
-    typealias SingleValueContainer = SingleValueDecodingContainer
-    typealias KeyedContainer = KeyedDecodingContainer<PathCodingKey>
-    typealias UnkeyedContainer = UnkeyedDecodingContainer
+    public typealias SingleValueContainer = SingleValueDecodingContainer
+    public typealias KeyedContainer = KeyedDecodingContainer<PathCodingKey>
+    public typealias UnkeyedContainer = UnkeyedDecodingContainer
     typealias UnkeyedCollection = [DeferredSingleValueContainer]
 }
 

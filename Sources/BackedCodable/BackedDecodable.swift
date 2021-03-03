@@ -33,5 +33,5 @@ extension BackedDecodable {
 
 extension Backed: WrappedDecodable {}
 private protocol WrappedDecodable: AnyObject {
-    func decodeWrappedValue(at path: Path, from decoder: Decoder) throws
+    func decodeWrappedValue(at path: Path?, from decoder: Decoder) throws
 }

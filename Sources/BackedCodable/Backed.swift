@@ -23,23 +23,23 @@ public final class Backed<Value> {
         self
     }
 
-    public init(_ path: Path?, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decoder: BackingDecoder<Value>) {
+    public init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decoder: BackingDecoder<Value>) {
         self._wrappedValue = defaultValue ?? extractDefaultValue()
         self.context = .init(path: path ?? Path(), options: options)
         self.decoder = decoder
     }
 
-    public convenience init<T>(_ path: Path?, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decoder backingDecoder: BackingDecoder<T>) where Value == T? {
+    public convenience init<T>(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decoder backingDecoder: BackingDecoder<T>) where Value == T? {
         self.init(path, defaultValue: defaultValue, options: options, decoder: BackingDecoder { decoder, context -> T? in
             try backingDecoder.decode(from: decoder, context: context)
         })
     }
 
-    func decodeWrappedValue(at inferredPath: Path, from decoder: Decoder) throws {
+    public func decodeWrappedValue(at inferredPath: Path? = nil, from decoder: Decoder) throws {
         do {
             _wrappedValue = try self.decoder.decode(
                 from: decoder,
-                context: context.withInferredPath(inferredPath)
+                context: context.withInferredPath(inferredPath ?? Path())
             )
         } catch {
             if _wrappedValue == nil {
