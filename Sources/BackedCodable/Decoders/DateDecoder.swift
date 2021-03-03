@@ -56,18 +56,35 @@ public struct DateDecodingStrategy {
     }
 }
 
-enum DateDecoder {
-    static func decode(from decoder: Decoder, context: BackingDecoderContext, strategy: DateDecodingStrategy) throws -> Date {
-        try decoder.decode(at: context.path, options: context.options) { decoder in
-            try strategy.decode(from: decoder)
-        }
-    }
-}
-
 extension BackingDecoder {
     static func date(strategy: DateDecodingStrategy) -> BackingDecoder<Date> {
         BackingDecoder<Date> { (decoder, context) -> Date in
-            try DateDecoder.decode(from: decoder, context: context, strategy: strategy)
+            try decoder.decode(at: context.path, options: context.options) { decoder in
+                try strategy.decode(from: decoder)
+            }
+        }
+    }
+
+    static func dates(strategy: DateDecodingStrategy) -> BackingDecoder<[Date]> {
+        BackingDecoder<[Date]> { (decoder, context) -> [Date] in
+            try decoder.decode(at: context.path, options: context.options) { pathDecoder in
+                let container = try pathDecoder.unkeyedContainer()
+                var dates: [Date] = []
+                for i in 0 ..< (container.count ?? 0) {
+                    do {
+                        dates.append(
+                            try decoder.decode(at: context.path[i], options: context.options) { pathDecoder in
+                                try strategy.decode(from: pathDecoder)
+                            }
+                        )
+                    } catch {
+                        if context.options.contains(.lossy) == false {
+                            throw error
+                        }
+                    }
+                }
+                return dates
+            }
         }
     }
 }

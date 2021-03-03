@@ -41,4 +41,12 @@ extension Backed {
     public convenience init(_ path: Path? = nil, defaultValue: Value = nil, options: BackingDecoderOptions = [], strategy: DateDecodingStrategy) where Value == Date? {
         self.init(path, defaultValue: defaultValue, options: options, decoder: .date(strategy: strategy))
     }
+
+    public convenience init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = [], strategy: DateDecodingStrategy) where Value == [Date] {
+        self.init(path, defaultValue: defaultValue, options: options, decoder: .dates(strategy: strategy))
+    }
+
+    public convenience init(_ path: Path? = nil, defaultValue: Value = nil, options: BackingDecoderOptions = [], strategy: DateDecodingStrategy) where Value == [Date]? {
+        self.init(path, defaultValue: defaultValue, options: options, decoder: .dates(strategy: strategy))
+    }
 }

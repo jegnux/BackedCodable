@@ -25,6 +25,7 @@ public var jsonStub: Data {
         "name": "Steve",
         "start_date": 1613984296000,
         "end_date": 1613984996,
+        "dates": [1613984296, "N/A", 1613984996],
         "values": [12, "34", 56, "78"],
         "attributes": {
             "values": ["12", 34, "56", 78],

@@ -21,6 +21,10 @@ final class BackedCodableTests: XCTestCase {
                 name: "Steve",
                 startDate: Date(timeIntervalSince1970: 1_613_984_296),
                 endDate: Date(timeIntervalSince1970: 1_613_984_996),
+                dates: [
+                    Date(timeIntervalSince1970: 1_613_984_296),
+                    Date(timeIntervalSince1970: 1_613_984_996),
+                ],
                 values: ["34", "78"],
                 nestedValues: ["12", "56"],
                 nestedInteger: 34,

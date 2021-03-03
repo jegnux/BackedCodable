@@ -14,6 +14,7 @@ public struct BackedStub: BackedDecodable, Equatable {
         name: String,
         startDate: Date,
         endDate: Date,
+        dates: [Date],
         values: [String],
         nestedValues: [String],
         nestedInteger: Int,
@@ -29,6 +30,7 @@ public struct BackedStub: BackedDecodable, Equatable {
         self._name = Backed(name)
         self._startDate = Backed(startDate)
         self._endDate = Backed(endDate)
+        self._dates = Backed(dates)
         self._values = Backed(values)
         self._nestedValues = Backed(nestedValues)
         self._nestedInteger = Backed(nestedInteger)
@@ -62,6 +64,9 @@ public struct BackedStub: BackedDecodable, Equatable {
 
     @Backed(Path.end_date, strategy: .secondsSince1970)
     public var endDate: Date
+
+    @Backed(Path.end_date, options: .lossy, strategy: .secondsSince1970)
+    public var dates: [Date]
 
     @Backed(Path.values, defaultValue: [], options: .lossy)
     public var values: [String]
