@@ -65,7 +65,7 @@ public struct BackedStub: BackedDecodable, Equatable {
     @Backed(Path.end_date, strategy: .secondsSince1970)
     public var endDate: Date
 
-    @Backed(Path.end_date, options: .lossy, strategy: .secondsSince1970)
+    @Backed(Path.dates, options: .lossy, strategy: .secondsSince1970)
     public var dates: [Date]
 
     @Backed(Path.values, defaultValue: [], options: .lossy)

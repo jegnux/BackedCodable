@@ -18,6 +18,8 @@ public struct Path: Hashable, CustomStringConvertible {
         storage.components
     }
 
+    public init() {}
+
     private init(storage: PathStorage) {
         self.storage = storage
     }

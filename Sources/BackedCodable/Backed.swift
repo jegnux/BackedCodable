@@ -25,7 +25,7 @@ public final class Backed<Value> {
 
     public init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decoder: BackingDecoder<Value>) {
         self._wrappedValue = defaultValue ?? extractDefaultValue()
-        self.context = .init(path: path ?? Path(), options: options)
+        self.context = .init(givenPath: path, options: options)
         self.decoder = decoder
     }
 

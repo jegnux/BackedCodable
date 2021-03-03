@@ -8,9 +8,6 @@ import Foundation
 
 public final class PathDecoder {
     init(decoder: Decoder, pathComponents: [PathComponent], options: BackingDecoderOptions) throws {
-        guard pathComponents.isEmpty == false else {
-            throw BackedError.invalidPath()
-        }
         self.decoder = decoder
         self.pathComponents = pathComponents
         self.options = options
@@ -110,7 +107,6 @@ public final class PathDecoder {
             return try elements.decode(at: index)
         case .allKeys, .allValues, .keys, .values, nil:
             return try elements.decode()
-//            throw BackedError.invalidPath()
         }
     }
 

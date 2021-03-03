@@ -7,11 +7,22 @@
 import Foundation
 
 public struct BackingDecoderContext {
-    public let path: Path
+    public let givenPath: Path?
+    public let inferredPath: Path?
     public let options: BackingDecoderOptions
 
+    public var path: Path {
+        givenPath ?? inferredPath ?? Path()
+    }
+
+    internal init(givenPath: Path?, inferredPath: Path? = nil, options: BackingDecoderOptions) {
+        self.givenPath = givenPath
+        self.inferredPath = inferredPath
+        self.options = options
+    }
+
     func withInferredPath(_ path: Path) -> BackingDecoderContext {
-        BackingDecoderContext(path: self.path ?? path, options: options)
+        BackingDecoderContext(givenPath: givenPath, inferredPath: path, options: options)
     }
 }
 

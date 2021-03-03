@@ -10,7 +10,7 @@ extension Decoder {
     func decode<T>(_ type: T.Type = T.self, at path: Path, options: BackingDecoderOptions = [], decode: (PathDecoder) throws -> T) throws -> T {
         var lastError: Error?
 
-        for components in path.components where components.isEmpty == false {
+        for components in path.components {
             do {
                 let context = try PathDecoder(
                     decoder: self,
