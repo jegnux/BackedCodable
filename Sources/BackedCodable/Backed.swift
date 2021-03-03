@@ -11,16 +11,22 @@ public final class Backed<Value> {
     public let decoder: BackingDecoder<Value>
     public let context: BackingDecoderContext
 
+    private var hasBeenDecoded = false
+    private var _initialValue: Value? = extractDefaultValue()
     private var _wrappedValue: Value?
     public var wrappedValue: Value {
-        guard let wrappedValue = _wrappedValue ?? extractDefaultValue() else {
+        let value: Value? = hasBeenDecoded
+            ? (_wrappedValue ?? _initialValue)
+            : _initialValue
+        guard let wrappedValue = value else {
             fatalError("\(type(of: self)).wrappedValue has been used before being initialized. This is a programming error.")
         }
         return wrappedValue
     }
 
-    public var projectedValue: Backed<Value> {
-        self
+    public var projectedValue: Value? {
+        get { _initialValue }
+        set { _initialValue = newValue }
     }
 
     public init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decoder: BackingDecoder<Value>) {
@@ -36,13 +42,14 @@ public final class Backed<Value> {
     }
 
     public func decodeWrappedValue(at inferredPath: Path? = nil, from decoder: Decoder) throws {
+        hasBeenDecoded = true
         do {
             _wrappedValue = try self.decoder.decode(
                 from: decoder,
                 context: context.withInferredPath(inferredPath ?? Path())
             )
         } catch {
-            if _wrappedValue == nil {
+            if (_wrappedValue ?? _initialValue) == nil {
                 throw error
             }
         }
@@ -51,20 +58,20 @@ public final class Backed<Value> {
 
 extension Backed: CustomStringConvertible {
     public var description: String {
-        String(describing: _wrappedValue as Any? ?? "nil")
+        String(describing: (_wrappedValue ?? _initialValue) as Any? ?? "nil")
     }
 }
 
 extension Backed: CustomDebugStringConvertible {
     public var debugDescription: String {
-        if let value = _wrappedValue {
+        if let value = _wrappedValue ?? _initialValue {
             if let x = value as? CustomDebugStringConvertible {
                 return x.debugDescription
             } else if let x = value as? CustomStringConvertible {
                 return x.description
             }
         }
-        return _wrappedValue.debugDescription
+        return (_wrappedValue ?? _initialValue).debugDescription
     }
 }
 

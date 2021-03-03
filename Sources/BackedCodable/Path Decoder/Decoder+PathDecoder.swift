@@ -8,7 +8,6 @@ import Foundation
 
 extension Decoder {
     func decode<T>(_ type: T.Type = T.self, at path: Path, options: BackingDecoderOptions = [], decode: (PathDecoder) throws -> T) throws -> T {
-        var lastError: Error?
 
         for components in path.components {
             do {
@@ -18,12 +17,10 @@ extension Decoder {
                     options: options
                 )
                 return try decode(context)
-            } catch {
-                lastError = error
-            }
+            } catch {}
         }
 
-        throw (lastError ?? BackedError.invalidPath() as Error)
+        throw BackedError.invalidPath(path)
     }
 
     public func decode<T>(_ type: T.Type = T.self, at path: Path, options: BackingDecoderOptions = []) throws -> T where T: ElementDecodable {

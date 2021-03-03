@@ -110,6 +110,21 @@ public final class PathDecoder {
         }
     }
 
+    func unkeyedCollection() throws -> UnkeyedCollection {
+        switch pathComponents.last {
+        case .allKeys:
+            return try elements.nestedUnkeyedCollection(.decodeFromKey)
+        case .allValues:
+            return try elements.nestedUnkeyedCollection(.decodeFromValue)
+        case .keys(let filter):
+            return try elements.nestedUnkeyedCollection(.decodeFromKey, filter: filter)
+        case .values(let filter):
+            return try elements.nestedUnkeyedCollection(.decodeFromValue, filter: filter)
+        default:
+            throw BackedError.invalidPath()
+        }
+    }
+
     public func unkeyedContainer() throws -> UnkeyedContainer {
         switch pathComponents.last {
         case .key(let key):

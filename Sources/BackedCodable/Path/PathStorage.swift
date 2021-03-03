@@ -18,7 +18,7 @@ internal indirect enum PathStorage: Hashable {
         while let path = buffer.popLast() {
             switch path {
             case .root:
-                continue
+                components.append(components.popLast() ?? [])
             case .or(let lhs, let rhs):
                 components += lhs.components
                 components += rhs.components

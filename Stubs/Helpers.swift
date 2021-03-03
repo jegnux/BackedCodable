@@ -44,6 +44,10 @@ public var jsonStub: Data {
             "red": 255,
             "green": 128,
             "blue": 128
+        },
+        "birthdays": {
+            "Steve Jobs": -468691200,
+            "Tim Cook": -289238400
         }
     }
     """

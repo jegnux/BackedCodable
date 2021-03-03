@@ -68,9 +68,14 @@ extension BackingDecoder {
     static func dates(strategy: DateDecodingStrategy) -> BackingDecoder<[Date]> {
         BackingDecoder<[Date]> { (decoder, context) -> [Date] in
             try decoder.decode(at: context.path, options: context.options) { pathDecoder in
-                let container = try pathDecoder.unkeyedContainer()
-                var dates: [Date] = []
-                for i in 0 ..< (container.count ?? 0) {
+                let count: Int
+                if pathDecoder.pathComponents.last?.isKeyValue == true {
+                    count = try pathDecoder.unkeyedCollection().count
+                } else {
+                    count = try pathDecoder.unkeyedContainer().count ?? 0
+                }
+                
+                return try (0..<count).reduce(into: []) { (dates, i) in
                     do {
                         dates.append(
                             try decoder.decode(at: context.path[i], options: context.options) { pathDecoder in
@@ -83,7 +88,6 @@ extension BackingDecoder {
                         }
                     }
                 }
-                return dates
             }
         }
     }

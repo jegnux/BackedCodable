@@ -57,6 +57,11 @@ public struct Path: Hashable, CustomStringConvertible {
     }
 
     public var description: String {
-        "Path(\(components.map(\.description).joined(separator: ", ")))"
+        let componentsDescription = components
+            .map { $0.map(\.description).joined(separator: ", ") }
+            .map { "[\($0)]" }
+            .joined(separator: " OR ")
+        
+        return "Path(\(componentsDescription))"
     }
 }

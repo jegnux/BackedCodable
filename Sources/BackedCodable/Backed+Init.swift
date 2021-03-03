@@ -7,10 +7,6 @@
 import Foundation
 
 extension Backed {
-    public convenience init(_ value: Value) {
-        self.init(nil, defaultValue: value, options: [], decoder: BackingDecoder { _, _ in value })
-    }
-
     public convenience init(_ path: Path? = nil, defaultValue: Value? = nil, options: BackingDecoderOptions = [], decode: @escaping (Decoder, BackingDecoderContext) throws -> Value) {
         let decoder = BackingDecoder<Value>(decode: decode)
         self.init(path, defaultValue: defaultValue, options: options, decoder: decoder)

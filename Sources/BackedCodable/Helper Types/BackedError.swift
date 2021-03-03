@@ -12,8 +12,12 @@ public struct BackedError: Swift.Error, CustomStringConvertible {
     let line: UInt
 //    let callStackSymbols: [String] = Thread.callStackSymbols
 
-    static func invalidPath(file: StaticString = #fileID, line: UInt = #line) -> BackedError {
-        BackedError(errorDescription: "Invalid Path", file: file, line: line)
+    static func invalidPath(_ path: Path? = nil, file: StaticString = #fileID, line: UInt = #line) -> BackedError {
+        if let path = path {
+            return BackedError(errorDescription: "Invalid Path: \(path)", file: file, line: line)
+        } else {
+            return BackedError(errorDescription: "Invalid Path", file: file, line: line)
+        }
     }
 
     static func missingValue(file: StaticString = #fileID, line: UInt = #line) -> BackedError {

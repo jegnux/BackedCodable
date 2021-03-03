@@ -25,23 +25,27 @@ public struct BackedStub: BackedDecodable, Equatable {
         smallCountFruits: [String],
         firstSmallCountFruit: String,
         foregroundColor: Color,
-        backgroundColor: Color
+        backgroundColor: Color,
+        birthdays: [Date],
+        timCookBirthday: Date
     ) {
-        self._name = Backed(name)
-        self._startDate = Backed(startDate)
-        self._endDate = Backed(endDate)
-        self._dates = Backed(dates)
-        self._values = Backed(values)
-        self._nestedValues = Backed(nestedValues)
-        self._nestedInteger = Backed(nestedInteger)
-        self._fruits = Backed(fruits)
-        self._counts = Backed(counts)
-        self._bestFruit = Backed(bestFruit)
-        self._lastCount = Backed.init(lastCount)
-        self._smallCountFruits = Backed(smallCountFruits)
-        self._firstSmallCountFruit = Backed(firstSmallCountFruit)
-        self._foregroundColor = Backed(foregroundColor)
-        self._backgroundColor = Backed(backgroundColor)
+        self.$name = name
+        self.$startDate = startDate
+        self.$endDate = endDate
+        self.$dates = dates
+        self.$values = values
+        self.$nestedValues = nestedValues
+        self.$nestedInteger = nestedInteger
+        self.$fruits = fruits
+        self.$counts = counts
+        self.$bestFruit = bestFruit
+        self.$lastCount = lastCount
+        self.$smallCountFruits = smallCountFruits
+        self.$firstSmallCountFruit = firstSmallCountFruit
+        self.$foregroundColor = foregroundColor
+        self.$backgroundColor = backgroundColor
+        self.$birthdays = birthdays
+        self.$timCookBirthday = timCookBirthday
     }
 
     @Backed()
@@ -100,6 +104,12 @@ public struct BackedStub: BackedDecodable, Equatable {
 
     @Backed(Path.background_color, decoder: .RGBAColor)
     public var backgroundColor: Color
+
+    @Backed(Path.birthdays[.allValues], strategy: .secondsSince1970)
+    public var birthdays: [Date]
+
+    @Backed(Path.birthdays[.allValues][1], strategy: .secondsSince1970)
+    public var timCookBirthday: Date
 }
 
 extension BackingDecoder where Value == Color {
