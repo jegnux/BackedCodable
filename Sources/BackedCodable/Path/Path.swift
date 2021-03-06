@@ -6,54 +6,45 @@
 
 import Foundation
 
-@dynamicMemberLookup
-public struct Path: Hashable, CustomStringConvertible {
+public struct Path: Hashable, CustomStringConvertible, ExpressibleByStringLiteral {
     public static func ?? (lhs: Path, rhs: Path) -> Path {
-        Path(storage: .or(lhs.storage, rhs.storage))
+        Path(storage: lhs.storage + rhs.storage)
     }
 
-    private var storage: PathStorage = .root
+    private var storage: [[PathComponent]] = [[]]
 
     internal var components: [[PathComponent]] {
-        storage.components
+        storage
     }
 
-    public init() {}
+    public static let root = Path()
 
-    private init(storage: PathStorage) {
+    private init() {}
+
+    internal init(storage: [[PathComponent]]) {
         self.storage = storage
     }
 
-    internal init(_ components: PathComponent...) {
-        for component in components {
-            storage.append(component)
+    public init(_ components: PathComponent...) {
+        self.storage = [components]
+    }
+
+    public init(stringLiteral value: String) {
+        guard value.isEmpty == false else {
+            self.init()
+            return
         }
+        self.init(.key(value))
     }
 
-    internal func appending(_ pathComponent: PathComponent) -> Path {
+    public func appending(_ pathComponents: PathComponentConvertible...) -> Path {
         var copy = self
-        copy.storage.append(pathComponent)
+        for i in copy.storage.indices {
+            for component in pathComponents {
+                copy.storage[i].append(component.makePathComponent())
+            }
+        }
         return copy
-    }
-
-    public static subscript(dynamicMember value: KeyPath<Path, Path>) -> Path {
-        Path()[keyPath: value]
-    }
-
-    public subscript(dynamicMember key: String) -> Path {
-        appending(.key(key))
-    }
-
-    public subscript(key: String) -> Path {
-        appending(.key(key))
-    }
-
-    public subscript(index: Int) -> Path {
-        appending(.index(index))
-    }
-
-    public subscript(pathComponent: PathComponent) -> Path {
-        appending(pathComponent)
     }
 
     public var description: String {
@@ -61,7 +52,7 @@ public struct Path: Hashable, CustomStringConvertible {
             .map { $0.map(\.description).joined(separator: ", ") }
             .map { "[\($0)]" }
             .joined(separator: " OR ")
-        
+
         return "Path(\(componentsDescription))"
     }
 }

@@ -27,6 +27,7 @@ public struct BackedStub: BackedDecodable, Equatable {
         foregroundColor: Color,
         backgroundColor: Color,
         birthdays: [Date],
+//        birthdaysAfter1958:[Date],
         timCookBirthday: Date
     ) {
         self.$name = name
@@ -45,6 +46,7 @@ public struct BackedStub: BackedDecodable, Equatable {
         self.$foregroundColor = foregroundColor
         self.$backgroundColor = backgroundColor
         self.$birthdays = birthdays
+//        self.$birthdaysAfter1958 = birthdaysAfter1958
         self.$timCookBirthday = timCookBirthday
     }
 
@@ -60,55 +62,62 @@ public struct BackedStub: BackedDecodable, Equatable {
     @Backed(strategy: .secondsSince1970)
     public var someDateSince1970: Date?
 
-    @Backed(Path.full_name ?? Path.name ?? Path.first_name)
+    @Backed("full_name" ?? "name" ?? "first_name")
     public var name: String
 
-    @Backed(Path.start_date, strategy: .deferredToDecoder)
+    @Backed(Path("attributes", "all dates", "start_date"), strategy: .deferredToDecoder)
     public var startDate: Date
 
-    @Backed(Path.end_date, strategy: .secondsSince1970)
+    @Backed(Path("attributes", "all dates", "end_date"), strategy: .secondsSince1970)
     public var endDate: Date
 
-    @Backed(Path.dates, options: .lossy, strategy: .secondsSince1970)
+    @Backed("dates", options: .lossy, strategy: .secondsSince1970)
     public var dates: [Date]
 
-    @Backed(Path.values, defaultValue: [], options: .lossy)
+    @Backed("values", defaultValue: [], options: .lossy)
     public var values: [String]
 
-    @Backed(Path.attributes.values, options: .lossy)
+    @Backed(Path("attributes", "values"), options: .lossy)
     public var nestedValues: [String]?
 
-    @Backed(Path.attributes.values[1])
+    @Backed(Path("attributes", "values", 1))
     public var nestedInteger: Int
 
-    @Backed(Path.counts[.allKeys], options: .lossy)
+    @Backed(Path("counts", .allKeys), options: .lossy)
     public var fruits: [Fruits]
 
-    @Backed(Path.counts[.allValues])
+    @Backed(Path("counts", .allValues))
     public var counts: [Int]
 
-    @Backed(Path.counts[.allKeys][0])
+    @Backed(Path("counts", .allKeys, 0))
     public var bestFruit: String
 
-    @Backed(Path.counts[.allValues][2])
+    @Backed(Path("counts", .allValues, 2))
     public var lastCount: Int
 
-    @Backed(Path.counts[.keys(where: hasSmallCount)])
+    @Backed(Path("counts", .keys(where: hasSmallCount)))
     public var smallCountFruits: [String]
 
-    @Backed(Path.counts[.keys(where: hasSmallCount)][0])
+    @Backed(Path("counts", .keys(where: hasSmallCount), 0))
     public var firstSmallCountFruit: String
 
-    @Backed(Path.foreground_color, decoder: .HSBAColor)
+    @Backed("foreground_color", decoder: .HSBAColor)
     public var foregroundColor: Color
 
-    @Backed(Path.background_color, decoder: .RGBAColor)
+    @Backed("background_color", decoder: .RGBAColor)
     public var backgroundColor: Color
 
-    @Backed(Path.birthdays[.allValues], strategy: .secondsSince1970)
+    @Backed(Path("birthdays", .allValues), strategy: .secondsSince1970)
     public var birthdays: [Date]
 
-    @Backed(Path.birthdays[.allValues][1], strategy: .secondsSince1970)
+//    @Backed(Path("birthdays", .values(where: { (key: String, date: Date) in
+//        print(key, date, date.timeIntervalSince1970)
+//        return date.timeIntervalSince1970 > -378691200
+//
+//    })), strategy: .secondsSince1970)
+//    public var birthdaysAfter1958: [Date]
+
+    @Backed(Path("birthdays", .allValues, 1), strategy: .secondsSince1970)
     public var timCookBirthday: Date
 }
 
@@ -116,10 +125,10 @@ extension BackingDecoder where Value == Color {
     public static var HSBAColor: BackingDecoder<Color> {
         BackingDecoder<Color> { decoder, context in
             Color.hsba(
-                hue: try decoder.decode(at: context.path.hue) / 255.0,
-                saturation: try decoder.decode(at: context.path.saturation) / 255.0,
-                brightness: try decoder.decode(at: context.path.brightness) / 255.0,
-                alpha: (try? decoder.decode(at: context.path.alpha) / 255.0) ?? 1
+                hue: try decoder.decode(at: context.path.appending("hue")) / 255.0,
+                saturation: try decoder.decode(at: context.path.appending("saturation")) / 255.0,
+                brightness: try decoder.decode(at: context.path.appending("brightness")) / 255.0,
+                alpha: (try? decoder.decode(at: context.path.appending("alpha")) / 255.0) ?? 1
             )
         }
     }
@@ -127,10 +136,10 @@ extension BackingDecoder where Value == Color {
     public static var RGBAColor: BackingDecoder<Color> {
         BackingDecoder<Color> { decoder, context in
             Color.rgba(
-                red: try decoder.decode(at: context.path.red) / 255.0,
-                green: try decoder.decode(at: context.path.green) / 255.0,
-                blue: try decoder.decode(at: context.path.blue) / 255.0,
-                alpha: (try? decoder.decode(at: context.path.alpha) / 255.0) ?? 1
+                red: try decoder.decode(at: context.path.appending("red")) / 255.0,
+                green: try decoder.decode(at: context.path.appending("green")) / 255.0,
+                blue: try decoder.decode(at: context.path.appending("blue")) / 255.0,
+                alpha: (try? decoder.decode(at: context.path.appending("alpha")) / 255.0) ?? 1
             )
         }
     }

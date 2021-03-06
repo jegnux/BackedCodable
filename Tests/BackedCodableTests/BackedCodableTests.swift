@@ -13,11 +13,12 @@ final class BackedCodableTests: XCTestCase {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .millisecondsSince1970
 
-        let sut = try decoder.decode(BackedStub.self, from: jsonStub)
+        typealias SUT = BackedStub
+        let sut = try decoder.decode(SUT.self, from: jsonStub)
 
         XCTAssertEqual(
             sut,
-            BackedStub(
+            SUT(
                 name: "Steve",
                 startDate: Date(timeIntervalSince1970: 1_613_984_296),
                 endDate: Date(timeIntervalSince1970: 1_613_984_996),
@@ -37,40 +38,68 @@ final class BackedCodableTests: XCTestCase {
                 foregroundColor: Color.hsba(hue: 255 / 255, saturation: 128 / 255, brightness: 128 / 255, alpha: 1),
                 backgroundColor: Color.rgba(red: 255 / 255, green: 128 / 255, blue: 128 / 255, alpha: 1),
                 birthdays: [
-                    Date(timeIntervalSince1970: -468691200),
-                    Date(timeIntervalSince1970: -289238400),
+                    Date(timeIntervalSince1970: -468_691_200),
+                    Date(timeIntervalSince1970: -289_238_400),
                 ],
-                timCookBirthday: Date(timeIntervalSince1970: -289238400)
+//                birthdaysAfter1958: [
+//                    Date(timeIntervalSince1970: -289238400),
+//                ],
+                timCookBirthday: Date(timeIntervalSince1970: -289_238_400)
             )
         )
     }
-    
+
     func testPath() throws {
+        XCTAssertEqual("test", PathComponent.key("test"))
+        XCTAssertEqual(1337, PathComponent.index(1337))
+
+        let testString = "test"
+        let testInt = 1337
+
+        XCTAssertEqual(testString.makePathComponent(), PathComponent.key("test"))
+        XCTAssertEqual(testInt.makePathComponent(), PathComponent.index(1337))
+
         XCTAssertEqualComponents(
-            Path(),
+            Path.root,
             [[]]
         )
         XCTAssertEqualComponents(
-            Path.foo,
+            Path("foo"),
             [[.key("foo")]]
         )
         XCTAssertEqualComponents(
-            Path.foo ?? Path.bar,
+            "foo" ?? "bar",
             [[.key("foo")], [.key("bar")]]
         )
         XCTAssertEqualComponents(
-            Path.foo ?? Path.bar ?? Path.test,
+            "foo" ?? "bar" ?? "test",
             [[.key("foo")], [.key("bar")], [.key("test")]]
         )
         XCTAssertEqualComponents(
-            (Path.foo ?? Path.bar ?? Path.test).wow,
-            [[.key("foo"), .key("wow")], [.key("bar"), .key("wow")], [.key("test"), .key("wow")]]
+            ("foo" ?? "bar" ?? "test").appending("wow", 42),
+            [
+                [.key("foo"), .key("wow"), .index(42)],
+                [.key("bar"), .key("wow"), .index(42)],
+                [.key("test"), .key("wow"), .index(42)],
+            ]
+        )
+        XCTAssertEqualComponents(
+            "",
+            [[]]
+        )
+        XCTAssertEqualComponents(
+            "foo",
+            [["foo"]]
+        )
+        XCTAssertEqualComponents(
+            "foo.bar",
+            [["foo.bar"]]
         )
     }
 
     static var allTests = [
         ("testExample", testDecode),
-        ("testPath", testPath)
+        ("testPath", testPath),
     ]
 }
 

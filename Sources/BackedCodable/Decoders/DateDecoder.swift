@@ -74,11 +74,11 @@ extension BackingDecoder {
                 } else {
                     count = try pathDecoder.unkeyedContainer().count ?? 0
                 }
-                
-                return try (0..<count).reduce(into: []) { (dates, i) in
+
+                return try (0 ..< count).reduce(into: []) { dates, i in
                     do {
                         dates.append(
-                            try decoder.decode(at: context.path[i], options: context.options) { pathDecoder in
+                            try decoder.decode(at: context.path.appending(i), options: context.options) { pathDecoder in
                                 try strategy.decode(from: pathDecoder)
                             }
                         )

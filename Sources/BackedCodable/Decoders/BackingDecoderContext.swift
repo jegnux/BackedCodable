@@ -13,13 +13,13 @@ public struct BackingDecoderContext {
 
     public var path: Path {
         switch (givenPath, inferredPath) {
-        case let (given?, inferred?):
+        case (let given?, let inferred?):
             return given ?? inferred
-        case let (given, inferred):
+        case (let given, let inferred):
             return given ?? inferred ?? Path()
         }
     }
-    
+
     internal init(givenPath: Path?, inferredPath: Path? = nil, options: BackingDecoderOptions) {
         self.givenPath = givenPath
         self.inferredPath = inferredPath
