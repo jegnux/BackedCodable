@@ -6,8 +6,6 @@
 
 import Foundation
 
-private let iso8601DateFormatter = ISO8601DateFormatter()
-
 public struct DateDecodingStrategy {
     private let decode: (PathDecoder) throws -> Date
 
@@ -30,13 +28,6 @@ public struct DateDecodingStrategy {
         Date(timeIntervalSince1970: try decoder.decode(TimeInterval.self) / 1000)
     }
 
-    /// Decode the `Date` as an ISO-8601-formatted string (in RFC 3339 format).
-    public static let iso8601 = DateDecodingStrategy { decoder in
-        try iso8601DateFormatter.date(
-            from: try decoder.decode(String.self)
-        ) ?? .missingValue()
-    }
-
     /// Decode the `Date` as a string parsed by the given formatter.
     public static func formatted(_ formatter: DateFormatter) -> DateDecodingStrategy {
         DateDecodingStrategy { decoder in
@@ -53,6 +44,20 @@ public struct DateDecodingStrategy {
 
     fileprivate func decode(from decoder: PathDecoder) throws -> Date {
         try decode(decoder)
+    }
+}
+
+@available(iOS 10.0, OSX 10.12, tvOS 10.0, watchOS 3.0, *)
+private let iso8601DateFormatter = ISO8601DateFormatter()
+
+@available(iOS 10.0, OSX 10.12, tvOS 10.0, watchOS 3.0, *)
+extension DateDecodingStrategy {
+
+    /// Decode the `Date` as an ISO-8601-formatted string (in RFC 3339 format).
+    public static let iso8601 = DateDecodingStrategy { decoder in
+        try iso8601DateFormatter.date(
+            from: try decoder.decode(String.self)
+        ) ?? .missingValue()
     }
 }
 
