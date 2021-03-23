@@ -201,7 +201,8 @@ public struct BackedStub: BackedDecodable, Equatable {
 
 ## FAQ
 
-#### How do I declare a memberwise initializer?
+<details><summary><b>How do I declare a memberwise initializer?</b></summary>
+
 ```swift
 struct User: BackedDecodable {
     init() {} // required by BackedDecodable
@@ -222,19 +223,25 @@ struct User: BackedDecodable {
     var lastName: String
 }
 ```
-#### What happen if I init my model with the required `.init()`?
+</details>
+
+<details><summary><b>What happen if I initialize my model with the required <code>.init()</code>?</b></summary>
 Unfortunately, if you let the init body empty, it will crash. 
-To avoid the crash, must be sure to set all `self.$property`  in the init like in the memberwise init.
+To avoid the crash, must be sure to set all <code>self.$property</code>  in the init like in the memberwise init.
 This is a known limitation for which I didn't find any solution.
+</details>
 
-#### Do I need to have all my model backed by **BackedDecodable**?
+<details><summary><b>Do I need to have all my model backed by <code>BackedDecodable</code>?</b></summary>
 No! Backed model works on their own and can be composed of plain Decodable properties.
+</details>
 
-#### What about performances?
+<details><summary><b>What about performances?</b></summary>
 I didn't run any performance testing yet (it's on the todo list :wink:) but as the library uses reflection and go through nested containers from the root Decoder for each properties, you might notice some performance issues. Feel free to open an issue with attached details if you do! 🙏
+</details>
 
-#### Wouldn't it be better if all of these was part of Swift?
+<details><summary><b>Wouldn't it be better if all of these was part of Swift?</b></summary>
 It would! I had to accept some performance and compile-time safety trade-offs to make this library (see above) that probably wouldn't be needed if this was possible in plain Swift. But luckily, Swift is an incredible community driven language, and the core team initiated a discussion around this topic. Check it out: https://forums.swift.org/t/serialization-in-swift/46641
+</details>
 
 ## To-do
 - [ ] Performance testing
