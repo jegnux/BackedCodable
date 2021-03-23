@@ -233,6 +233,9 @@ No! Backed model works on their own and can be composed of plain Decodable prope
 #### What about performances?
 I didn't run any performance testing yet (it's on the todo list :wink:) but as the library uses reflection and go through nested containers from the root Decoder for each properties, you might notice some performance issues. Feel free to open an issue with attached details if you do! 🙏
 
+#### Wouldn't it be better if all of these was part of Swift?
+It would! I had to accept some performance and compile-time safety trade-offs to make this library (see above) that probably wouldn't be needed if this was possible in plain Swift. But luckily, Swift is an incredible community driven language, and the core team initiated a discussion around this topic. Check it out: https://forums.swift.org/t/serialization-in-swift/46641
+
 ## To-do
 - [ ] Performance testing
 - [ ] Encodable support
