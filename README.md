@@ -251,7 +251,7 @@ It would! I had to accept some performance and compile-time safety trade-offs to
 
 ## Thanks
 
-- Thanks to the many [reads](https://www.swiftbysundell.com/articles/property-wrappers-in-swift/) and [libraries](https://github.com/GottaGetSwifty/CodableWrappers) that inspired this project.
+- Thanks to the many [reads](https://www.swiftbysundell.com/articles/property-wrappers-in-swift/) and [libraries](https://github.com/GottaGetSwifty/CodableWrappers) that [inspired](https://github.com/Abridoux/scout) this project.
 - Thanks to [JSON API](https://jsonapi.org) for this great JSON format full of nested payloads...
 
 ## Author
