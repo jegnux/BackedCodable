@@ -8,7 +8,7 @@ import BackedCodable
 import Foundation
 
 public struct BackedStub: BackedDecodable, Equatable {
-    public init() {}
+    public init(_: DeferredDecoder) {}
 
     public init(
         name: String,

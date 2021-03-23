@@ -7,12 +7,16 @@
 import Foundation
 
 public protocol BackedDecodable: Decodable {
-    init()
+    init(_: DeferredDecoder)
+}
+
+public struct DeferredDecoder {
+    fileprivate init() {}
 }
 
 extension BackedDecodable {
     public init(from decoder: Decoder) throws {
-        self = .init()
+        self = .init(DeferredDecoder())
         for (path, decodable) in decodablePaths {
             try decodable.decodeWrappedValue(at: path, from: decoder)
         }

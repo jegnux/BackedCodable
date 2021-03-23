@@ -5,7 +5,7 @@ Powerful property wrapper to back codable properties.
 
 Swift's Codable is a great language feature but easily becomes verbose and requires a lot of boilerplate as soon as your serialized files (JSON, Plist) differ from the model you actually want for your app.
 
-**BackedCodable** offers a **single** property wrapper to annotate your properties in a declarative way, instead of the good old imperative `init(from:Decoder)`.
+**BackedCodable** offers a **single** property wrapper to annotate your properties in a declarative way, instead of the good old imperative `init(from decoder: Decoder)`.
 
 [Other](https://github.com/marksands/BetterCodable) [libraries](https://github.com/GottaGetSwifty/CodableWrappers) solve Decodable issues using property wrappers as well, but IMO they are limited by the fact you can apply only one property wrapper per property. So for example, you have to choose between `@LossyArray` and `@DefaultEmptyArray`.  
 
@@ -18,7 +18,7 @@ With this library, you'll be able to write things like `@Backed(Path("attributes
 ## Usage
 
 - Mark **all** properties of your model with `@Backed()`
-- Make your model conform to `BackedDecodable` ; it just requires a `init()`
+- Make your model conform to `BackedDecodable` ; it just requires a `init(_:DeferredDecoder)`
 
 ## Features
 
@@ -132,7 +132,7 @@ Given the following JSON:
 All of this is possible:
 ```swift
 public struct BackedStub: BackedDecodable, Equatable {
-    public init() {}
+    public init(_:DeferredDecoder) {}
 
     @Backed()
     public var someString: String?
@@ -205,7 +205,7 @@ public struct BackedStub: BackedDecodable, Equatable {
 
 ```swift
 struct User: BackedDecodable {
-    init() {} // required by BackedDecodable
+    init(_: DeferredDecoder) {} // required by BackedDecodable
     
     init(id: String, firstName: String, lastName: String) {
         self.$id = id
@@ -225,10 +225,10 @@ struct User: BackedDecodable {
 ```
 </details>
 
-<details><summary><b>What happen if I initialize my model with the required <code>.init()</code>?</b></summary>
-Unfortunately, if you let the init body empty, it will crash. 
-To avoid the crash, must be sure to set all <code>self.$property</code>  in the init like in the memberwise init.
-This is a known limitation for which I didn't find any solution.
+<details><summary><b>What happen if I forgot to set a `$property` in a custom <code>.init(...)</code>?</b></summary>
+Unfortunately, unless the property is <code>Optional</code>, it will crash. 
+To avoid the crash, must be sure to set all <code>self.$property</code>  in all your custom <code>.init(...)</code> like in the memberwise <code>.init(...)</code> example above.
+This is a known limitation for which I don't have any solution.
 </details>
 
 <details><summary><b>Do I need to have all my model backed by <code>BackedDecodable</code>?</b></summary>
