@@ -201,7 +201,7 @@ public struct BackedStub: BackedDecodable, Equatable {
 
 ## FAQ
 
-#### How do I declare a memberwise initizializer?
+#### How do I declare a memberwise initializer?
 ```swift
 struct User: BackedDecodable {
     init() {} // required by BackedDecodable
