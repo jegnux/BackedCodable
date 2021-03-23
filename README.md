@@ -7,7 +7,7 @@ Swift's Codable is a great language feature but easily becomes verbose and requi
 
 **BackedCodable** offers a **single** property wrapper to annotate your properties in a declarative way, instead of the good old imperative `init(from:Decoder)`.
 
-[Other](https://github.com/marksands/BetterCodable) [libraries](https://github.com/GottaGetSwifty/CodableWrappers) solve Decodable issues using property wrappers as well, but IMO they are limitied by the fact you can apply only one property wrapper per property. So for example, you have to choose between `@LossyArray` and `@DefaultEmptyArray`.  
+[Other](https://github.com/marksands/BetterCodable) [libraries](https://github.com/GottaGetSwifty/CodableWrappers) solve Decodable issues using property wrappers as well, but IMO they are limited by the fact you can apply only one property wrapper per property. So for example, you have to choose between `@LossyArray` and `@DefaultEmptyArray`.  
 
 With this library, you'll be able to write things like `@Backed(Path("attributes", "dates"), options: .lossy, strategy: .secondsSince1970)` to decode a *lossy* array of dates using a *seconds since 1970* strategy at the key `dates` of the nested dictionary `attributes`.
 
