@@ -230,10 +230,13 @@ This is a known limitation for which I didn't find any solution.
 #### Do I need to have all my model backed by **BackedDecodable**?
 No! Backed model works on their own and can be composed of plain Decodable properties.
 
+#### What about performances?
+I didn't run any performance testing yet (it's on the todo list :wink:) but as the library uses reflection and go through nested containers from the root Decoder for each properties, you might notice some performance issues. Feel free to open an issue with attached details if you do! 🙏
 
 ## To-do
-- [ ] support Encodable
-- [ ] support mutable properties
+- [ ] Performance testing
+- [ ] Encodable support
+- [ ] Mutable properties support
 - [ ] Data strategies
 
 ## Thanks
