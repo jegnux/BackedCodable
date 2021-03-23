@@ -5,7 +5,6 @@
 //
 
 import Foundation
-// import BackedDecodable
 
 public struct PlainSwiftStub: Decodable {
     public enum CodingKeys: String, CodingKey {

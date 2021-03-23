@@ -27,7 +27,6 @@ public struct BackedStub: BackedDecodable, Equatable {
         foregroundColor: Color,
         backgroundColor: Color,
         birthdays: [Date],
-//        birthdaysAfter1958:[Date],
         timCookBirthday: Date
     ) {
         self.$name = name
@@ -46,7 +45,6 @@ public struct BackedStub: BackedDecodable, Equatable {
         self.$foregroundColor = foregroundColor
         self.$backgroundColor = backgroundColor
         self.$birthdays = birthdays
-//        self.$birthdaysAfter1958 = birthdaysAfter1958
         self.$timCookBirthday = timCookBirthday
     }
 
@@ -109,13 +107,6 @@ public struct BackedStub: BackedDecodable, Equatable {
 
     @Backed(Path("birthdays", .allValues), strategy: .secondsSince1970)
     public var birthdays: [Date]
-
-//    @Backed(Path("birthdays", .values(where: { (key: String, date: Date) in
-//        print(key, date, date.timeIntervalSince1970)
-//        return date.timeIntervalSince1970 > -378691200
-//
-//    })), strategy: .secondsSince1970)
-//    public var birthdaysAfter1958: [Date]
 
     @Backed(Path("birthdays", .allValues, 1), strategy: .secondsSince1970)
     public var timCookBirthday: Date

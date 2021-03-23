@@ -41,9 +41,6 @@ final class BackedCodableTests: XCTestCase {
                     Date(timeIntervalSince1970: -468_691_200),
                     Date(timeIntervalSince1970: -289_238_400),
                 ],
-//                birthdaysAfter1958: [
-//                    Date(timeIntervalSince1970: -289238400),
-//                ],
                 timCookBirthday: Date(timeIntervalSince1970: -289_238_400)
             )
         )
