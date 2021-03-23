@@ -13,7 +13,7 @@ With this library, you'll be able to write things like `@Backed(Path("attributes
 
 ## Installation
 
-**BackedDecodable** is installable using the Swift Package Manager.
+**BackedDecodable** is installable using the **Swift Package Manager** or **CocoaPods**.
 
 ## Usage
 
